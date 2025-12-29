@@ -6,11 +6,12 @@ interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   items: CartItem[];
+  onCheckout?: () => void;
   onUpdateQuantity?: (id: string, delta: number) => void;
   onRemove?: (id: string) => void;
 }
 
-export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items }) => {
+export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onCheckout }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-[100] overflow-hidden">
@@ -42,7 +43,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items }
               <span className="text-gray-500 uppercase text-[10px] tracking-widest">Total Value</span>
               <span className="text-xl font-light text-white">${items.reduce((s, i) => s + i.price * i.quantity, 0).toLocaleString()}</span>
             </div>
-            <button className="w-full py-4 bg-[#c5a059] text-black font-bold uppercase text-xs tracking-widest hover:bg-white transition-all">Proceed to Acquisition</button>
+            <button 
+              onClick={onCheckout}
+              className="w-full py-4 bg-[#c5a059] text-black font-bold uppercase text-xs tracking-widest hover:bg-white transition-all"
+            >
+              Proceed to Checkout
+            </button>
           </div>
         )}
       </div>

@@ -7,12 +7,13 @@ import { HomePage } from './pages/HomePage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdminPanel } from './pages/AdminPanel';
+import { CheckoutPage } from './pages/CheckoutPage';
 import { CartDrawer } from './components/CartDrawer';
 import { AuthModal } from './components/AuthModal';
 import { GeminiConcierge } from './components/GeminiConcierge';
 
 type ViewState = {
-  name: 'home' | 'shop' | 'admin' | 'detail' | 'profile';
+  name: 'home' | 'shop' | 'admin' | 'detail' | 'profile' | 'checkout';
   params?: any;
 };
 
@@ -24,6 +25,12 @@ export const App = () => {
   const [loading, setLoading] = useState(true);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [pendingCheckout, setPendingCheckout] = useState(false);
+
+  // Reset scroll to top on every view change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [view]);
 
   useEffect(() => {
     const init = async () => {
@@ -41,11 +48,11 @@ export const App = () => {
     init();
   }, []);
 
-  const addToCart = (watch: Watch) => {
+  const addToCart = (watch: Watch, qty: number = 1) => {
     setCart(prev => {
       const existing = prev.find(i => i.id === watch.id);
-      if (existing) return prev.map(i => i.id === watch.id ? { ...i, quantity: i.quantity + 1 } : i);
-      return [...prev, { ...watch, quantity: 1 }];
+      if (existing) return prev.map(i => i.id === watch.id ? { ...i, quantity: i.quantity + qty } : i);
+      return [...prev, { ...watch, quantity: qty }];
     });
     setIsCartOpen(true);
   };
@@ -54,6 +61,36 @@ export const App = () => {
     setUser(u);
     setIsAuthOpen(false);
     localStorage.setItem('betawatch_token', 'demo-token');
+    
+    // If they were trying to checkout, send them there now
+    if (pendingCheckout) {
+      setView({ name: 'checkout' });
+      setPendingCheckout(false);
+    }
+  };
+
+  const handleCheckout = () => {
+    setIsCartOpen(false);
+    if (!user) {
+      setPendingCheckout(true);
+      setIsAuthOpen(true);
+    } else {
+      setView({ name: 'checkout' });
+    }
+  };
+
+  const handleCompleteOrder = async (details: any) => {
+    try {
+      setLoading(true);
+      await api.orders.create(cart);
+      alert(`Acquisition complete for ${details.firstName} ${details.lastName}. Welcome to the club.`);
+      setCart([]);
+      setView({ name: 'home' });
+    } catch (e) {
+      console.error("Order failed", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderContent = () => {
@@ -92,6 +129,8 @@ export const App = () => {
         return <ProfilePage user={user} />;
       case 'admin':
         return <AdminPanel watches={watches} />;
+      case 'checkout':
+        return <CheckoutPage items={cart} onComplete={handleCompleteOrder} onBack={() => setView({ name: 'shop' })} />;
       default:
         return <HomePage watches={watches} onAddToCart={addToCart} onNavigate={setView} />;
     }
@@ -104,7 +143,7 @@ export const App = () => {
         cartCount={cart.reduce((s, i) => s + i.quantity, 0)}
         onOpenCart={() => setIsCartOpen(true)}
         onLogout={() => { localStorage.removeItem('betawatch_token'); setUser(null); setView({ name: 'home' }); }}
-        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenAuth={() => { setPendingCheckout(false); setIsAuthOpen(true); }}
         onNavigate={setView}
       />
       
@@ -120,12 +159,13 @@ export const App = () => {
       <CartDrawer 
         isOpen={isCartOpen} 
         onClose={() => setIsCartOpen(false)} 
-        items={cart} 
+        items={cart}
+        onCheckout={handleCheckout}
       />
       
       <AuthModal 
         isOpen={isAuthOpen} 
-        onClose={() => setIsAuthOpen(false)} 
+        onClose={() => { setIsAuthOpen(false); setPendingCheckout(false); }} 
         onLogin={handleLogin} 
       />
       

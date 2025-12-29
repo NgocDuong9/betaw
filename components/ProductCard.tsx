@@ -4,7 +4,7 @@ import { Watch } from '../types';
 
 interface ProductCardProps {
   watch: Watch;
-  onAddToCart: (w: Watch) => void;
+  onAddToCart: (w: Watch, qty?: number) => void;
   onClick: (w: Watch) => void;
 }
 
@@ -29,9 +29,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ watch, onAddToCart, on
       <div className="flex justify-between items-start mb-2 cursor-pointer" onClick={() => onClick(watch)}>
         <div>
           <h4 className="text-[#c5a059] text-[10px] uppercase tracking-widest mb-1">{watch.brand}</h4>
-          <h3 className="text-lg font-serif font-medium hover:text-[#c5a059] transition-colors">{watch.name}</h3>
+          <h3 className="text-lg font-serif font-medium hover:text-[#c5a059] transition-colors text-white">{watch.name}</h3>
         </div>
-        <span className="text-lg font-light">${watch.price.toLocaleString()}</span>
+        <span className="text-lg font-light text-gray-300">${watch.price.toLocaleString()}</span>
       </div>
       <p className="text-gray-500 text-xs line-clamp-2 font-light">{watch.description}</p>
     </div>
