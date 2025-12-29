@@ -4,18 +4,8 @@ import { Watch, CartItem, User } from './types';
 import { api } from './services/api';
 import { Navbar } from './components/Navbar';
 import { HomePage } from './pages/HomePage';
-import { ProductDetailPage } from './pages/ProductDetailPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { AdminPanel } from './pages/AdminPanel';
-import { CheckoutPage } from './pages/CheckoutPage';
-import { CartDrawer } from './components/CartDrawer';
-import { AuthModal } from './components/AuthModal';
-import { GeminiConcierge } from './components/GeminiConcierge';
 
-type ViewState = {
-  name: 'home' | 'shop' | 'admin' | 'detail' | 'profile' | 'checkout';
-  params?: any;
-};
+type ViewState = { name: 'home' | 'shop' | 'admin' | 'detail' | 'profile' | 'checkout'; params?: any; };
 
 export const App = () => {
   const [view, setView] = useState<ViewState>({ name: 'home' });
@@ -23,20 +13,13 @@ export const App = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [view]);
 
   useEffect(() => {
     const init = async () => {
       try {
         const data = await api.products.getAll();
         setWatches(data);
-      } catch (e) {
-        console.error("Init error", e);
       } finally {
         setLoading(false);
       }
@@ -44,48 +27,46 @@ export const App = () => {
     init();
   }, []);
 
-  const addToCart = (watch: Watch, qty: number = 1) => {
+  const addToCart = (watch: Watch) => {
     setCart(prev => {
       const existing = prev.find(i => i.id === watch.id);
-      if (existing) return prev.map(i => i.id === watch.id ? { ...i, quantity: i.quantity + qty } : i);
-      return [...prev, { ...watch, quantity: qty }];
+      if (existing) return prev.map(i => i.id === watch.id ? { ...i, quantity: i.quantity + 1 } : i);
+      return [...prev, { ...watch, quantity: 1 }];
     });
-    setIsCartOpen(true);
   };
 
-  const handleLogin = (u: User) => {
-    setUser(u);
+  const handleLogin = () => {
+    setUser({ id: '1', username: 'Member', email: 'member@betawatch.com', role: 'admin' });
     setIsAuthOpen(false);
-    localStorage.setItem('betawatch_token', 'demo-token');
   };
 
-  const renderContent = () => {
-    if (loading) return <div className="h-screen flex items-center justify-center bg-black text-[#c5a059]">Loading...</div>;
-
-    switch (view.name) {
-      case 'detail': return <ProductDetailPage watch={view.params} onAddToCart={addToCart} onBack={() => setView({ name: 'home' })} />;
-      case 'shop': return <div className="p-20 text-center">Collection View (Coming soon)</div>;
-      case 'profile': return <ProfilePage user={user} />;
-      case 'admin': return <AdminPanel watches={watches} />;
-      case 'checkout': return <CheckoutPage items={cart} onComplete={() => setView({name: 'home'})} onBack={() => setView({ name: 'home' })} />;
-      default: return <HomePage watches={watches} onAddToCart={addToCart} onNavigate={setView} />;
-    }
-  };
+  if (loading) return <div className="h-screen flex items-center justify-center bg-black text-[#c5a059] uppercase tracking-widest text-xs">Loading Inventory...</div>;
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <Navbar 
         user={user} 
         cartCount={cart.reduce((s, i) => s + i.quantity, 0)}
-        onOpenCart={() => setIsCartOpen(true)}
+        onOpenCart={() => alert("Cart View")}
         onLogout={() => setUser(null)}
-        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenAuth={() => handleLogin()}
         onNavigate={setView}
       />
-      <main>{renderContent()}</main>
-      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cart} onCheckout={() => setView({name: 'checkout'})} />
-      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} onLogin={handleLogin} />
-      <GeminiConcierge watches={watches} />
+      
+      <main>
+        {view.name === 'home' && <HomePage watches={watches} onAddToCart={addToCart} onNavigate={setView} />}
+        {view.name !== 'home' && (
+          <div className="pt-32 px-10 text-center">
+            <h2 className="text-3xl font-serif text-[#c5a059] mb-4">Under Construction</h2>
+            <button onClick={() => setView({ name: 'home' })} className="text-xs uppercase tracking-widest underline">Return Home</button>
+          </div>
+        )}
+      </main>
+
+      <footer className="py-20 border-t border-white/5 text-center mt-20">
+        <h2 className="text-[#c5a059] font-serif text-2xl mb-4 tracking-widest">BETAWATCH</h2>
+        <p className="text-gray-600 text-[10px] uppercase tracking-widest">© 2024 Timeless Excellence</p>
+      </footer>
     </div>
   );
 };

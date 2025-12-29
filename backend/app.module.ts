@@ -6,7 +6,6 @@ import { ProductsModule } from './products/products.module';
 
 @Module({
   imports: [
-    // Kết nối MongoDB
     MongooseModule.forRoot(process.env.MONGODB_URI || 'mongodb://localhost/betawatch'),
     AuthModule,
     ProductsModule,

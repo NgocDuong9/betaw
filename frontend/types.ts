@@ -21,6 +21,3 @@ export interface User {
 export interface CartItem extends Watch {
   quantity: number;
 }
-
-export type Brand = 'Rolex' | 'Patek Philippe' | 'Audemars Piguet' | 'Omega' | 'Tag Heuer' | 'Cartier';
-export const BRANDS: Brand[] = ['Rolex', 'Patek Philippe', 'Audemars Piguet', 'Omega', 'Tag Heuer', 'Cartier'];
