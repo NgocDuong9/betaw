@@ -1,0 +1,7 @@
+{
+  "name": "Betawatch Luxury",
+  "description": "A high-end luxury watch e-commerce application featuring a premium dark aesthetic, product filtering, shopping cart, and AI-powered personal shopping assistance.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
